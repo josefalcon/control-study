@@ -18,8 +18,7 @@
 ;; closures and values
 (define-extended-language lambda-shift/reset-abstract
   lambda-shift/reset
-  (e empty
-     ((x v) e))
+  (e ((x v) ...))
   (c halt
      (arg (t e) c)
      (succ c)
@@ -33,7 +32,7 @@
    lambda-shift/reset-abstract
    ;; terms
    (--> t
-        (t empty halt dot)
+        (t () halt dot)
         init)
    
    ;; machine states
@@ -48,7 +47,7 @@
         (c (x t e) d)
         e-abs)
    (--> ((t_0 t_1) e c d)
-        (t_0 e (arg t_1 e c) d)
+        (t_0 e (arg (t_1 e) c) d)
         e-app)
    (--> ((succ t) e c d)
         (t e (succ c) d)
@@ -64,7 +63,7 @@
    (--> (halt v d)
         (d v)
         c-halt)
-   (--> ((arg t e c) v d)
+   (--> ((arg (t e) c) v d)
         (t e (fun v c) d)
         c-arg)
    (--> ((succ c) m d)
