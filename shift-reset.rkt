@@ -29,49 +29,58 @@
   (v m (x t e) c))
 
 (define lambda-shift/reset-reduction
-  lambda-shift/reset-abstract
-  ;; terms
-  (--> t
-       (t empty halt dot)
-       init)
+  (reduction-relation
+   lambda-shift/reset-abstract
+   ;; terms
+   (--> t
+        (t empty halt dot)
+        init)
+   
+   ;; machine states
+   (--> (m e c d)
+        (c m d)
+        e-num)
+   (--> (x ((x_0 v_0) ... (x v) (x_1 v_1) ...) c d)
+        (c v d)
+        e-var
+        (side-condition (not (member (term x) (term (x_0 ...))))))
+   (--> ((lambda (x) t) e c d)
+        (c (x t e) d)
+        e-abs)
+   (--> ((t_0 t_1) e c d)
+        (t_0 e (arg t_1 e c) d)
+        e-app)
+   (--> ((succ t) e c d)
+        (t e (succ c) d)
+        e-succ)
+   (--> ((reset t) e c d)
+        (t e halt (d c))
+        e-reset)
+   (--> ((shift (x_1) t) ((x v) ...) c d)
+        (t ((x_1 c) (x v) ...) halt d)
+        e-shift)
+   
+   ;; continuations
+   (--> (halt v d)
+        (d v)
+        c-halt)
+   (--> ((arg t e c) v d)
+        (t e (fun v c) d)
+        c-arg)
+   (--> ((succ c) m d)
+        (c ,(add1 (term m)) d)
+        c-succ)
+   (--> ((fun (x t ((x_1 v_1) ...)) c) v d)
+        (t ((x v) (x_1 v_1) ...) c d)
+        c-abs)
+   (--> ((fun c_1 c_2) v d)
+        (c_1 v (d c_2))
+        c-cntx)
+   
+   ;; meta-continuations
+   (--> ((d c) v)
+        (c v d)
+        m-cntxt)))
+   ;(--> (dot v)
+    ;    (v empty halt dot))))
   
-  ;; machine states
-  (--> (m e c d)
-       (c m d)
-       num)
-  (--> (x e c d)
-       (c lookup(x, e) d)
-       var)
-  (--> ((lambda (x) t) e c d)
-       (c (x t e) d)
-       closure)
-  (--> ((t_0 t_1) e c d)
-       (t_0 e (arg t_1 e c) d)
-       app)
-  (--> ((succ t) e c d)
-       (t e (succ c) d)
-       succ)
-  (--> ((reset t) e c d)
-       (t e halt (d c))
-       reset)
-  (--> ((shift t) e c d)
-       (t extend(e) halt d)
-       shift)
-  
-  ;; continuations
-  (--> (halt v d)
-       (d v))
-  (--> ((arg t e c) v d)
-       (t e (fun v c) d))
-  (--> ((succ c) m d)
-       (c add1(m) d))
-  (--> ((fun (x t e) c) v d)
-       (t extend(e v) c d))
-  (--> ((fun c_1 c_2) v d)
-       (c_1 v (d c_2)))
-  
-  ;; meta-continuations
-  (--> ((d c) v)
-       (c v d))
-  (--> (dot v)
-       v))
