@@ -1,5 +1,8 @@
 #lang racket
 
+;; Jose Falcon
+;; 2011/01/28
+
 (require redex)
 
 ;; lambda calculus extended with numbers, succ and shift/reset. this language
