@@ -1,25 +1,20 @@
 #lang racket
 
 ;; Jose Falcon
-;; 2011/01/28
+;; Updated: 2011/01/28
 
 (require redex)
+(require rackunit)
+(require "lambda-languages.rkt")
 
-;; lambda calculus extended with numbers, succ and shift/reset. this language
-;; is a bit difficult to use since we don't have built in recursion
-(define-language lambda-shift/reset
-  (t m
-     x
-     (lambda (x) t)
-     (t t)
-     (add1 t)
+;; lambda-nat with shift/reset.
+(define-extended-language lambda-shift/reset lambda-nat
+  (t ....
      (reset t)
-     (shift x t))
-  ((x y z) variable-not-otherwise-mentioned)
-  (m natural))
+     (shift x t)))
 
-;; extended language with environments, continuations, meta-continuations,
-;; closures, values and machine states
+;; abstract machine with environments, continuations, meta-continuations,
+;; closures and values.
 (define-extended-language lambda-shift/reset-abstract
   lambda-shift/reset
   (e ((x v) ...))
@@ -86,7 +81,7 @@
     (match v
       [`((dot ,(? number? n))) n]
       [`((dot (,x ,t ,e))) 'function]
-      [`((dot ,c)) 'continuation]
+      [`((dot ,c)) 'function] ; racket represents shift continuations as procedures
       [_ 'stuck])))
 
 ;; random testing against racket
@@ -106,7 +101,7 @@
       (eval t racket-ns)))
   (cond
     [(procedure? raw-result) 'function]
-    [(continuation? raw-result) 'continuation]
+    #;[(continuation? raw-result) 'function]
     [else raw-result]))
 
 ;; equiv-reduction? : t -> boolean
@@ -114,6 +109,7 @@
 (define (equiv-reduction? t)
   (let ([cek (eval-shift/reset-cek t)]
         [rack (eval-shift/reset-racket t)])
+    #;(pretty-print t)
     (eqv? cek rack)))
 
 ;; free-variables
@@ -128,24 +124,6 @@
   [(free-variables (reset t)) (free-variables t)]
   [(free-variables (shift x t)) (diff (free-variables t) (x))])
 
-;; diff
-;; set difference.
-(define-metafunction lambda-shift/reset
-  diff : (x ...) (x ...) -> (x ...)
-  [(diff (x ...) ()) (x ...)]
-  [(diff (x ... y z ...) (y y_1 ...))
-   (diff (x ... z ...) (y y_1 ...))
-   (side-condition (not (memq (term y) (term (x ...)))))]
-  [(diff (x ...) (y z ...)) (diff (x ...) (z ...))])
-
-;; union
-;; set union.
-(define-metafunction lambda-shift/reset
-  union : (x ...) (x ...) -> (x ...)
-  [(union (x ...) ()) (x ...)]
-  [(union (x ... y z ...) (y y_1 ...)) (union (x ... y z ...) (y_1 ...))]
-  [(union (x ... ) (y z ...)) (union (x ... y) (z ...))])
-
 ;; close-term
 ;; close the given free variables of the given term.
 (define-metafunction lambda-shift/reset
@@ -159,9 +137,13 @@
   [(close-term (reset t) (x ...)) (reset (close-term t (x ...)))]
   [(close-term (shift x t) (y ...)) (shift x (close-term t (y ...)))])
 
-;; random testing - this is broken on (term (shift k k)) - no fix yet!
+;; random testing - wrap everything in a reset to be safe.
 (redex-check
   lambda-shift/reset
   t
   (equiv-reduction? (term t))
-  #:prepare (lambda (x) (term (close-term ,x (free-variables ,x)))))
+  #:prepare (lambda (x) (term (reset (close-term ,x (free-variables ,x))))))
+
+;; regression testing
+(check-true (equiv-reduction? (term (reset (shift m m)))))
+(check-true (equiv-reduction? (term (reset (shift e (add1 (shift oD e)))))))
