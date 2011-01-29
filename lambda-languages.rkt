@@ -9,13 +9,13 @@
 
 ;; lambda calculus extended with natural numbers and a successor function.
 (define-language lambda-nat
-  (t m
+  (t n
      x
      (lambda (x) t)
      (t t)
      (add1 t))
   ((w x y z) variable-not-otherwise-mentioned)
-  (m natural))
+  ((n m) natural))
 
 ;; metafunction for set difference.
 (define-metafunction lambda-nat

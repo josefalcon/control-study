@@ -24,14 +24,14 @@
      (fun v c))
   (d dot
      (d c))
-  (v m (x t e) c))
+  (v n (x t e) c))
 
 (define lambda-shift/reset-reduction
   (reduction-relation
    lambda-shift/reset-abstract   
    ;; machine states
-   (--> (m e c d)
-        (c m d)
+   (--> (n e c d)
+        (c n d)
         e-num)
    (--> (x ((x_0 v_0) ... (x v) (x_1 v_1) ...) c d)
         (c v d)
@@ -59,8 +59,8 @@
    (--> ((arg (t e) c) v d)
         (t e (fun v c) d)
         c-arg)
-   (--> ((add1 c) m d)
-        (c ,(add1 (term m)) d)
+   (--> ((add1 c) n d)
+        (c ,(add1 (term n)) d)
         c-add1)
    (--> ((fun (x t ((x_1 v_1) ...)) c) v d)
         (t ((x v) (x_1 v_1) ...) c d)
@@ -116,7 +116,7 @@
 ;; determine the free variables in a given term.
 (define-metafunction lambda-shift/reset
   free-variables : t -> (x ...)
-  [(free-variables m) ()]
+  [(free-variables n) ()]
   [(free-variables x) (x)]
   [(free-variables (lambda (x) t)) (diff (free-variables t) (x))]
   [(free-variables (t_0 t_1)) (union (free-variables t_0) (free-variables t_1))]
@@ -128,7 +128,7 @@
 ;; close the given free variables of the given term.
 (define-metafunction lambda-shift/reset
   close-term : t (x ...) -> t
-  [(close-term m (x ...)) m]
+  [(close-term n (x ...)) n]
   [(close-term y (x ... y z ...)) (lambda (y) y)]
   [(close-term y (x ...)) y]
   [(close-term (lambda (x) t) (y ...)) (lambda (x) (close-term t (y ...)))]
