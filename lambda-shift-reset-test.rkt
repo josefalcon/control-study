@@ -3,8 +3,7 @@
 (require redex)
 (require rackunit)
 (require "lambda-languages.rkt")
-(require "lambda-shift-reset-abstract-machine.rkt")
-(require "lambda-shift-reset-reduction-semantics.rkt")
+(require "lambda-shift-reset.rkt")
 
 ;;;;;;;;
 ;; random testing against racket
@@ -34,7 +33,7 @@
   (let ([cek (eval-shift/reset-cek t)]
         [red (eval-shift/reset-red t)]
         [rack (eval-shift/reset-racket t)])
-    (pretty-print t)
+    #;(pretty-print t)
     (andmap (lambda (x) (eqv? red x)) (list cek rack))))
 
 ;; prepare-term : t -> t
